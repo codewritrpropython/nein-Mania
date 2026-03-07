@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Neon Mania - Main Menu</title>
+<link href="https://fonts.googleapis.com" rel="stylesheet">
+<style>
+    body { 
+        margin:0; height:100vh; display:flex; flex-direction:column; 
+        justify-content:center; align-items:center; 
+        background: radial-gradient(circle at center, #1a0033 0%, #000 100%);
+        font-family: 'Orbitron', sans-serif; color: #fff; overflow: hidden;
+    }
+    .bg-grid {
+        position: absolute; width: 200%; height: 600px; bottom: -300px;
+        background-image: linear-gradient(to right, #0ff 1px, transparent 1px),
+                          linear-gradient(to bottom, #0ff 1px, transparent 1px);
+        background-size: 50px 50px; transform: perspective(500px) rotateX(60deg);
+        opacity: 0.2; animation: moveGrid 2s linear infinite; z-index: 0;
+    }
+    @keyframes moveGrid { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
+    h1 { font-size: 80px; margin-bottom: 50px; text-transform: uppercase; letter-spacing: 8px; text-shadow: 0 0 20px #0ff; z-index: 10; }
+    .menu-container { display: flex; flex-direction: column; gap: 20px; z-index: 10; }
+    .menu-btn { width: 280px; padding: 15px 0; font-family: 'Orbitron'; font-size: 20px; font-weight: bold; background: transparent; color: #fff; border: 2px solid #ff00ff; cursor: pointer; transition: 0.3s; box-shadow: 0 0 10px #f0f; }
+    .menu-btn:hover { background: #ff00ff; color: #000; box-shadow: 0 0 40px #ff00ff; transform: scale(1.05); }
+    .btn-play { border-color: #0ff; box-shadow: 0 0 10px #0ff; }
+    .btn-play:hover { background: #0ff; box-shadow: 0 0 40px #0ff; }
+    .popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background: rgba(0,0,0,0.95); padding: 40px; border: 3px solid #0ff; border-radius: 20px; color:#0ff; transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 20; width: 400px; max-height: 80vh; overflow-y: auto; }
+    label { display:block; margin-top:15px; font-size:14px; text-align:left; }
+    input[type="text"] { margin-top:5px; font-size:16px; width:40px; text-align:center; background: #222; color: #0ff; border: 1px solid #0ff; }
+    input[type="range"] { width: 100%; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<h1>NEON MANIA</h1>
+<div class="menu-container">
+    <button class="menu-btn btn-play" onclick="openPopup('Difficulty')">Start Game</button>
+    <button class="menu-btn" onclick="openPopup('Settings')">Settings</button>
+</div>
+<div id="Difficulty" class="popup">
+    <h2>Difficulty</h2>
+    <button class="menu-btn" onclick="startGame('easy')">Easy</button>
+    <button class="menu-btn" onclick="startGame('medium')">Medium</button>
+    <button class="menu-btn" onclick="startGame('hard')">Hard</button>
+    <button class="menu-btn" onclick="startGame('impossible')">Impossible</button>
+    <button class="menu-btn" onclick="startGame('demon')">Demon</button>
+    <button class="menu-btn" style="border-color:#fff; box-shadow:none;" onclick="closePopup('Difficulty')">Cancel</button>
+</div>
+<div id="Settings" class="popup">
+    <h2>Settings</h2>
+    <h3 style="color:#f0f; font-size:16px;">Keys</h3>
+    <div style="display:flex; gap:10px; justify-content:center;">
+        <input type="text" id="key0" maxlength="1" value="Z"> <input type="text" id="key1" maxlength="1" value="X">
+        <input type="text" id="key2" maxlength="1" value="N"> <input type="text" id="key3" maxlength="1" value="M">
+    </div>
+    <h3 style="color:#0ff; font-size:16px; margin-top:20px;">Gameplay</h3>
+    <label>Scroll Speed: <input type="range" id="scrollSpeed" min="5" max="30" value="12"></label>
+    <label>Background Dim: <input type="range" id="bgDim" min="0" max="100" value="40"></label>
+    <label>Lane Opacity: <input type="range" id="laneOp" min="0" max="100" value="20"></label>
+    <button class="menu-btn" style="width:100%; margin-top:20px;" onclick="saveAllSettings()">Save</button>
+</div>
+<script>
+    function openPopup(id){ document.getElementById(id).style.transform="translate(-50%,-50%) scale(1)"; }
+    function closePopup(id){ document.getElementById(id).style.transform="translate(-50%,-50%) scale(0)"; }
+    function startGame(level){ localStorage.setItem("neonDifficulty", level); window.location.href="game.html"; }
+    function saveAllSettings(){
+        const keys = [0,1,2,3].map(i=>document.getElementById("key"+i).value.toUpperCase());
+        localStorage.setItem("neonKeys", JSON.stringify(keys));
+        const adv = { speed: document.getElementById("scrollSpeed").value, dim: document.getElementById("bgDim").value, op: document.getElementById("laneOp").value };
+        localStorage.setItem("neonAdv", JSON.stringify(adv));
+        alert("Settings Saved!"); closePopup('Settings');
+    }
+</script>
+</body>
+</html>

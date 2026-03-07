@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Neon Mania - Play</title>
+<link href="https://fonts.googleapis.com" rel="stylesheet">
+<style>
+    body { margin:0; overflow:hidden; background: radial-gradient(circle at center, #1a0033 0%, #000 100%); font-family: 'Orbitron', sans-serif; }
+    canvas { display:block; width:100vw; height:100vh; position: relative; z-index: 5; }
+    .bg-grid { position: absolute; width: 200%; height: 600px; bottom: -300px; left: -50%; background-image: linear-gradient(to right, #0ff 1px, transparent 1px), linear-gradient(to bottom, #0ff 1px, transparent 1px); background-size: 50px 50px; transform: perspective(500px) rotateX(60deg); opacity: 0.15; pointer-events: none; z-index: 0; }
+    #ui { position:fixed; top:20px; left:50%; transform:translateX(-50%); font-size:24px; color:#fff; text-shadow:0 0 10px #0ff; z-index: 10; pointer-events:none; }
+    #countdown { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); font-size:150px; color:#ff00ff; text-shadow: 0 0 30px #ff00ff; z-index: 100; display: none; }
+    #results { position:fixed; top:50%; left:50%; transform:translate(-50%, -50%) scale(0); background:rgba(0,0,0,0.95); padding:50px; border:3px solid #ff00ff; border-radius:20px; color:#fff; text-align:center; box-shadow: 0 0 30px #ff00ff; transition:0.4s; z-index: 110; }
+    button { background: transparent; color: #0ff; border: 2px solid #0ff; padding: 10px 25px; font-size: 18px; cursor: pointer; text-shadow: 0 0 5px #0ff; transition: 0.2s; margin: 10px; font-family: 'Orbitron'; }
+    button:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<canvas id="game"></canvas>
+<div id="ui">Score: <span id="score">0</span> | Combo: <span id="combo">0</span> | Acc: <span id="acc">100</span>% | Time: <span id="time">30</span></div>
+<div id="countdown">3</div>
+<div id="results">
+    <div id="rank-display" style="font-size:100px; text-shadow: 0 0 30px #0ff;">SS</div>
+    <div id="stats-display" style="font-size:18px; margin-bottom:20px;"></div>
+    <button onclick="startCountdown()">Retry</button>
+    <button onclick="window.location.href='index.html'">Menu</button>
+</div>
+
+<script>
+    const DIFF_DATA = { easy:{s:800,n:"EASY"}, medium:{s:500,n:"MEDIUM"}, hard:{s:350,n:"HARD"}, impossible:{s:250,n:"IMPOSSIBLE"}, demon:{s:160,n:"DEMON"} };
+    const selDiff = localStorage.getItem("neonDifficulty") || "medium";
+    const adv = JSON.parse(localStorage.getItem("neonAdv")) || { speed: 12, dim: 40, op: 20 };
+    const keys = JSON.parse(localStorage.getItem("neonKeys")) || ["Z", "X", "N", "M"];
+    const keyMap = {}; keys.forEach((k,i) => keyMap[k.toLowerCase()] = i);
+
+    const canvas = document.getElementById("game"), ctx = canvas.getContext("2d");
+    let lanes = [], laneWidth = 140, hitY, score, combo, perfect, miss, timeLeft, running, notes = [], spawnInterval, timerInterval;
+
+    function resize() {
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight;
+        const center = canvas.width / 2;
+        const spacing = 20;
+        const totalWidth = (laneWidth * 4) + (spacing * 3);
+        const startX = center - totalWidth / 2;
+
+        lanes = [0, 1, 2, 3].map(i => ({ 
+            x: startX + (i * (laneWidth + spacing)), 
+            holding: false, 
+            blocked: false 
+        }));
+        hitY = canvas.height - 150;
+    }
+
+    function startCountdown() {
+        document.getElementById("results").style.transform = "translate(-50%,-50%) scale(0)";
+        score = 0; combo = 0; perfect = 0; miss = 0; timeLeft = 30; running = false; notes = []; resize(); updateStats();
+        const countEl = document.getElementById("countdown"); countEl.style.display = "block";
+        let c = 3; countEl.innerText = c;
+        const intr = setInterval(() => {
+            c--; if(c > 0) countEl.innerText = c; else if(c===0) countEl.innerText = "GO!";
+            else { clearInterval(intr); countEl.style.display = "none"; startGame(); }
+        }, 1000);
+    }
+
+    function startGame() {
+        running = true;
+        spawnInterval = setInterval(spawnNote, DIFF_DATA[selDiff].s);
+        timerInterval = setInterval(() => { if(running) { timeLeft--; document.getElementById("time").innerText = timeLeft; if(timeLeft <= 0) endGame(); } }, 1000);
+    }
+
+    function spawnNote() {
+        if(!running) return;
+        let l = Math.floor(Math.random() * 4);
+        if(lanes[l].blocked) return;
+
+        let isHold = Math.random() < 0.3;
+        let len = isHold ? (250 + Math.random() * 600) : 80;
+        notes.push({ lane: l, y: -800, hold: isHold, length: len, hit: false });
+
+        if(isHold) { 
+            lanes[l].blocked = true; 
+            setTimeout(() => { if(lanes[l]) lanes[l].blocked = false; }, (len / adv.speed) * 80); 
+        }
+    }
+
+    window.addEventListener("keydown", e => {
+        const i = keyMap[e.key.toLowerCase()];
+        if(running && i !== undefined && !lanes[i].holding) { lanes[i].holding = true; checkHit(i); }
+    });
+    window.addEventListener("keyup", e => { const i = keyMap[e.key.toLowerCase()]; if(i !== undefined) lanes[i].holding = false; });
+
+    function checkHit(l) {
+        const cand = notes.filter(n => n.lane === l && !n.hit).sort((a,b) => (b.y+b.length) - (a.y+a.length));
+        for(let n of cand) {
+            let bY = n.y + n.length;
+            if(bY > hitY + 100) continue; 
+            if(Math.abs(bY - hitY) < 100) {
+                n.hit = true;
+                if(!n.hold) { score += 300; perfect++; combo++; notes = notes.filter(x => x !== n); }
+                updateStats(); return;
+            }
+        }
+    }
+
+    function updateStats() {
+        let total = perfect + miss; let acc = total ? (perfect/total)*100 : 100;
+        document.getElementById("score").innerText = score; document.getElementById("combo").innerText = combo; document.getElementById("acc").innerText = acc.toFixed(1);
+        document.getElementById("rank-display").innerText = acc >= 98 ? "SS" : acc >= 95 ? "S" : acc >= 85 ? "A" : acc >= 70 ? "B" : "C";
+    }
+
+    function update() {
+        ctx.fillStyle = `rgba(0,0,0,${adv.dim/100})`; ctx.fillRect(0,0,canvas.width,canvas.height);
+        
+        if (lanes.length > 0) {
+            lanes.forEach(l => { 
+                ctx.fillStyle = l.holding ? `rgba(255,0,255,${adv.op/100 + 0.15})` : `rgba(0,255,255,${adv.op/100})`; 
+                ctx.fillRect(l.x, 0, laneWidth, canvas.height); 
+            });
+
+            // Hit Line matching exact width of lanes
+            const lineStartX = lanes[0].x;
+            const lineEndX = lanes[3].x + laneWidth;
+            ctx.fillStyle = "#ff00ff"; ctx.shadowBlur = 15; ctx.shadowColor = "#f0f"; 
+            ctx.fillRect(lineStartX, hitY, lineEndX - lineStartX, 4); 
+            ctx.shadowBlur = 0;
+        }
+
+        for(let i = notes.length - 1; i >= 0; i--) {
+            let n = notes[i]; if(running) n.y += parseInt(adv.speed);
+            
+            if(n.hold && lanes[n.lane].holding && n.hit && (n.y+n.length) >= hitY && n.y < hitY) {
+                n.length = Math.max(0, hitY - n.y); score += 5;
+            }
+            if(n.y > canvas.height || (n.hold && n.length <= 0)) {
+                if(running) { if(n.hold && n.length <= 0) { perfect++; combo++; } else if(!n.hit) { miss++; combo = 0; } updateStats(); }
+                notes.splice(i,1); continue;
+            }
+            ctx.fillStyle = n.hold ? "#f0f" : "#0ff"; ctx.shadowBlur = 10; ctx.shadowColor = ctx.fillStyle; 
+            ctx.fillRect(lanes[n.lane].x + 10, n.y, laneWidth - 20, n.length); 
+            ctx.shadowBlur = 0;
+        }
+        requestAnimationFrame(update);
+    }
+
+    function endGame() { running = false; clearInterval(spawnInterval); clearInterval(timerInterval); document.getElementById("results").style.transform = "translate(-50%,-50%) scale(1)"; document.getElementById("stats-display").innerHTML = `<div style='color:#0ff; font-size:24px;'>${DIFF_DATA[selDiff].n}</div>Perfect: ${perfect} | Miss: ${miss}`; }
+    
+    window.addEventListener("resize", resize);
+    startCountdown(); 
+    update();
+</script>
+</body>
+</html>
