@@ -1,76 +1,242 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Neon Mania - Main Menu</title>
-<link href="https://fonts.googleapis.com" rel="stylesheet">
-<style>
-    body { 
-        margin:0; height:100vh; display:flex; flex-direction:column; 
-        justify-content:center; align-items:center; 
-        background: radial-gradient(circle at center, #1a0033 0%, #000 100%);
-        font-family: 'Orbitron', sans-serif; color: #fff; overflow: hidden;
-    }
-    .bg-grid {
-        position: absolute; width: 200%; height: 600px; bottom: -300px;
-        background-image: linear-gradient(to right, #0ff 1px, transparent 1px),
-                          linear-gradient(to bottom, #0ff 1px, transparent 1px);
-        background-size: 50px 50px; transform: perspective(500px) rotateX(60deg);
-        opacity: 0.2; animation: moveGrid 2s linear infinite; z-index: 0;
-    }
-    @keyframes moveGrid { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
-    h1 { font-size: 80px; margin-bottom: 50px; text-transform: uppercase; letter-spacing: 8px; text-shadow: 0 0 20px #0ff; z-index: 10; }
-    .menu-container { display: flex; flex-direction: column; gap: 20px; z-index: 10; }
-    .menu-btn { width: 280px; padding: 15px 0; font-family: 'Orbitron'; font-size: 20px; font-weight: bold; background: transparent; color: #fff; border: 2px solid #ff00ff; cursor: pointer; transition: 0.3s; box-shadow: 0 0 10px #f0f; }
-    .menu-btn:hover { background: #ff00ff; color: #000; box-shadow: 0 0 40px #ff00ff; transform: scale(1.05); }
-    .btn-play { border-color: #0ff; box-shadow: 0 0 10px #0ff; }
-    .btn-play:hover { background: #0ff; box-shadow: 0 0 40px #0ff; }
-    .popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background: rgba(0,0,0,0.95); padding: 40px; border: 3px solid #0ff; border-radius: 20px; color:#0ff; transition:0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 20; width: 400px; max-height: 80vh; overflow-y: auto; }
-    label { display:block; margin-top:15px; font-size:14px; text-align:left; }
-    input[type="text"] { margin-top:5px; font-size:16px; width:40px; text-align:center; background: #222; color: #0ff; border: 1px solid #0ff; }
-    input[type="range"] { width: 100%; cursor: pointer; }
-</style>
+    <meta charset="UTF-8">
+    <title>Vector NITRO - Menu</title>
+    <style>
+        @font-face {
+            font-family: 'Nitro';
+            src: url('https://fonts.gstatic.com');
+        }
+        :root { --c: #0ff; --m: #f0f; --s: #aaa; --font: 'Orbitron', sans-serif; }
+        body { 
+            margin:0; height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; 
+            background: radial-gradient(circle at center, #1a0033 0%, #000 100%);
+            font-family: var(--font); color: #fff; overflow: hidden; text-transform: uppercase;
+        }
+        .bg-grid {
+            position: absolute; width: 200%; height: 600px; bottom: -300px;
+            background-image: linear-gradient(to right, var(--c) 1px, transparent 1px),
+                              linear-gradient(to bottom, var(--c) 1px, transparent 1px);
+            background-size: 50px 50px; transform: perspective(500px) rotateX(60deg);
+            opacity: 0.15; animation: gridMove 2s linear infinite; z-index: 0;
+        }
+        @keyframes gridMove { from { transform: perspective(500px) rotateX(60deg) translateY(0); } to { transform: perspective(500px) rotateX(60deg) translateY(50px); } }
+        
+        h1 { font-size: 90px; margin: 0 0 50px 0; letter-spacing: 20px; text-shadow: 0 0 30px var(--c); z-index: 10; font-weight: 900; }
+        
+        .menu-container { display: flex; flex-direction: column; gap: 15px; z-index: 10; }
+        .btn { 
+            width: 350px; padding: 20px 0; font-family: var(--font); font-size: 18px; font-weight: 900; letter-spacing: 5px;
+            background: transparent; color: #fff; border: 2px solid var(--m); cursor: pointer; 
+            transition: 0.3s; box-shadow: 0 0 15px var(--m); 
+        }
+        .btn:hover { background: var(--m); color: #000; box-shadow: 0 0 50px var(--m); transform: scale(1.05); }
+        .btn-play { border-color: var(--c); box-shadow: 0 0 15px var(--c); }
+        .btn-play:hover { background: var(--c); box-shadow: 0 0 50px var(--c); }
+        
+        #news {
+            position: fixed; bottom: 30px; right: 30px; width: 340px; 
+            background: rgba(0, 0, 0, 0.9); border: 2px solid var(--c); 
+            z-index: 5; border-radius: 4px; padding: 20px; box-shadow: 0 0 20px rgba(0,255,255,0.2);
+        }
+        .news-h { color: var(--c); font-size: 14px; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid var(--c); padding-bottom: 5px; letter-spacing: 3px; }
+        .news-p { color: #fff; font-size: 11px; line-height: 1.8; text-align: left; opacity: 0.8; }
+
+        .popup { 
+            position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); 
+            background: rgba(0,0,0,0.98); padding: 50px; border: 2px solid var(--c); 
+            color:var(--c); transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
+            z-index: 100; width: 500px; text-align: center;
+        }
+        .row { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
+        input[type="range"] { width: 200px; accent-color: var(--c); cursor: pointer; }
+        input[type="text"] { width: 50px; background: #111; border: 1px solid var(--c); color: var(--c); text-align: center; padding: 8px; font-family: var(--font); }
+       /* News Toggle Button */
+#news-toggle {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 90;
+    padding: 10px 20px;
+    background: transparent;
+    color: #0ff;
+    border: 2px solid #0ff;
+    font-family: 'Orbitron';
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px #0ff;
+    transition: 0.3s;
+}
+#news-toggle:hover {
+    background: #0ff;
+    color: #000;
+    box-shadow: 0 0 30px #0ff;
+}
+
+/* Slide-out Sidebar */
+#news-sidebar {
+    position: fixed;
+    top: 0;
+    right: -400px; /* Hidden by default */
+    width: 350px;
+    height: 100vh;
+    background: rgba(10, 0, 20, 0.95);
+    border-left: 3px solid #0ff;
+    box-shadow: -10px 0 30px rgba(0, 255, 255, 0.2);
+    z-index: 200;
+    transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    display: flex;
+    flex-direction: column;
+}
+
+#news-sidebar.open {
+    right: 0;
+}
+
+.sidebar-header {
+    padding: 20px;
+    background: rgba(0, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #0ff;
+}
+
+.sidebar-header h2 { margin: 0; font-size: 18px; color: #0ff; letter-spacing: 2px; }
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #f0f;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #0ff transparent;
+}
+
+.news-img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #f0f;
+    margin-bottom: 15px;
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+.news-section { margin-bottom: 25px; }
+.news-section h3 { font-size: 14px; color: #f0f; margin-bottom: 10px; border-bottom: 1px solid rgba(255,0,255,0.3); }
+.news-section ul { list-style: none; padding: 0; margin: 0; }
+.news-section li { font-size: 13px; margin-bottom: 8px; line-height: 1.4; color: #fff; }
+
+    </style>
 </head>
 <body>
-<div class="bg-grid"></div>
-<h1>NEON MANIA</h1>
-<div class="menu-container">
-    <button class="menu-btn btn-play" onclick="openPopup('Difficulty')">Start Game</button>
-    <button class="menu-btn" onclick="openPopup('Settings')">Settings</button>
-</div>
-<div id="Difficulty" class="popup">
-    <h2>Difficulty</h2>
-    <button class="menu-btn" onclick="startGame('easy')">Easy</button>
-    <button class="menu-btn" onclick="startGame('medium')">Medium</button>
-    <button class="menu-btn" onclick="startGame('hard')">Hard</button>
-    <button class="menu-btn" onclick="startGame('impossible')">Impossible</button>
-    <button class="menu-btn" onclick="startGame('demon')">Demon</button>
-    <button class="menu-btn" style="border-color:#fff; box-shadow:none;" onclick="closePopup('Difficulty')">Cancel</button>
-</div>
-<div id="Settings" class="popup">
-    <h2>Settings</h2>
-    <h3 style="color:#f0f; font-size:16px;">Keys</h3>
-    <div style="display:flex; gap:10px; justify-content:center;">
-        <input type="text" id="key0" maxlength="1" value="Z"> <input type="text" id="key1" maxlength="1" value="X">
-        <input type="text" id="key2" maxlength="1" value="N"> <input type="text" id="key3" maxlength="1" value="M">
+    <div class="bg-grid"></div>
+    <h1>Vector NITRO</h1>
+    <div class="menu-container">
+        <button class="btn btn-play" onclick="openP('Difficulty')">INITIALIZE</button>
+        <button class="btn" onclick="openP('Settings')">CALIBRATE</button>
+        <button class="btn" style="border-color:var(--s); box-shadow:0 0 10px var(--s);" onclick="openP('Credits')">Credits</button>
     </div>
-    <h3 style="color:#0ff; font-size:16px; margin-top:20px;">Gameplay</h3>
-    <label>Scroll Speed: <input type="range" id="scrollSpeed" min="5" max="30" value="12"></label>
-    <label>Background Dim: <input type="range" id="bgDim" min="0" max="100" value="40"></label>
-    <label>Lane Opacity: <input type="range" id="laneOp" min="0" max="100" value="20"></label>
-    <button class="menu-btn" style="width:100%; margin-top:20px;" onclick="saveAllSettings()">Save</button>
+
+    <!-- News Toggle Button -->
+<button id="news-toggle" onclick="toggleNews(true)">NEWS</button>
+<p style="position: fixed; bottom: 10px; left: 30px;">Version 1.4</p>
+
+<!-- Full-Height News Sidebar -->
+<div id="news-sidebar">
+    <div class="sidebar-header">
+        <h2>UPDATE V1.4</h2>
+        <button class="close-btn" onclick="toggleNews(false)">×</button>
+    </div>
+    
+    <div class="sidebar-content">
+        <!-- Feature Highlight Image -->
+        <img src="https://media.discordapp.net/attachments/1480072663673077871/1480163165953065064/image.png?ex=69aeacde&is=69ad5b5e&hm=84070cfb512024d0a86445a8b5099b43368308545c9aea1cfc267f2fc4ee5689&=&format=webp&quality=lossless&width=876&height=545" alt="Update Banner" class="news-img">
+
+        <div class="news-section">
+            <h3>BUG FIXES</h3>
+            <ul>
+                <li>• Fixed Hold and basic note overlapping</li>
+                <li>• Spamming bug fixed (Ghost-tap penalty active)</li>
+            </ul>
+        </div>
+
+        <!-- Tech Illustration Image -->
+
+        <div class="news-section">
+            <h3>NEW FEATURES</h3>
+            <ul>
+                <li>• New Pro-tier settings menu</li>
+                <li>• Controls Remapper (Keybinding Calibration)</li>
+                <li>• Improved visual hit-lighting</li>
+            </ul>
+        </div>
+    </div>
 </div>
-<script>
-    function openPopup(id){ document.getElementById(id).style.transform="translate(-50%,-50%) scale(1)"; }
-    function closePopup(id){ document.getElementById(id).style.transform="translate(-50%,-50%) scale(0)"; }
-    function startGame(level){ localStorage.setItem("neonDifficulty", level); window.location.href="game.html"; }
-    function saveAllSettings(){
-        const keys = [0,1,2,3].map(i=>document.getElementById("key"+i).value.toUpperCase());
-        localStorage.setItem("neonKeys", JSON.stringify(keys));
-        const adv = { speed: document.getElementById("scrollSpeed").value, dim: document.getElementById("bgDim").value, op: document.getElementById("laneOp").value };
-        localStorage.setItem("neonAdv", JSON.stringify(adv));
-        alert("Settings Saved!"); closePopup('Settings');
+
+
+    <div id="Difficulty" class="popup">
+        <h2>CORE FREQUENCY</h2>
+        <button class="btn" onclick="startG('easy')">EASY</button>
+        <button class="btn" onclick="startG('medium')">MEDIUM</button>
+        <button class="btn" onclick="startG('hard')">HARD</button>
+        <button class="btn" onclick="startG('impossible')">INSANE</button>
+        <button class="btn" onclick="startG('demon')">DEMON</button>
+        <button class="btn" style="border-color:#fff; box-shadow:none; margin-top:20px;" onclick="closeP('Difficulty')">BACK</button>
+    </div>
+
+    <div id="Settings" class="popup">
+        <h2>HARDWARE CONFIG</h2>
+        <div class="row">
+            <label>INPUT KEYS</label>
+            <div><input type="text" id="k0"> <input type="text" id="k1"> <input type="text" id="k2"> <input type="text" id="k3"></div>
+        </div>
+        <div class="row"><label>SCROLL SPEED</label><input type="range" id="speed" min="5" max="45" value="15"></div>
+        <div class="row"><label>BGM VOLUME</label><input type="range" id="bgm" min="0" max="100" value="50"></div>
+        <div class="row"><label>SFX VOLUME</label><input type="range" id="sfx" min="0" max="100" value="80"></div>
+        <div class="row"><label>BG DIM</label><input type="range" id="dim" min="0" max="100" value="40"></div>
+        <button class="btn" style="width:100%; margin-top:30px;" onclick="save()">APPLY PROTOCOLS</button>
+    </div>
+
+    <div id="Credits" class="popup" style="border-color:var(--m);">
+        <h2>Credit the devs on discord</h2>
+        <p>Programmer: FDG(@fdg_voided)</p>
+        <button class="btn" style="width:100%; border-color:#fff; box-shadow:none;" onclick="closeP('Credits')">CLOSE</button>
+    </div>
+
+    <script>
+        function openP(id){ document.getElementById(id).style.transform="translate(-50%,-50%) scale(1)"; }
+        function closeP(id){ document.getElementById(id).style.transform="translate(-50%,-50%) scale(0)"; }
+        function startG(lvl){ localStorage.setItem("neonDifficulty", lvl); window.location.href="game.html"; }
+        function save(){
+            const keys = [0,1,2,3].map(i => document.getElementById("k"+i).value.toUpperCase());
+            localStorage.setItem("neonKeys", JSON.stringify(keys));
+            const adv = { speed: document.getElementById("speed").value, bgm: document.getElementById("bgm").value, sfx: document.getElementById("sfx").value, dim: document.getElementById("dim").value };
+            localStorage.setItem("neonAdv", JSON.stringify(adv));
+            alert("CONFIG SYNCED"); closeP('Settings');
+        }
+        window.onload = () => {
+            const c = JSON.parse(localStorage.getItem("neonAdv")) || { speed:15, bgm:50, sfx:80, dim:40 };
+            document.getElementById("speed").value = c.speed; document.getElementById("bgm").value = c.bgm; document.getElementById("sfx").value = c.sfx; document.getElementById("dim").value = c.dim;
+            const k = JSON.parse(localStorage.getItem("neonKeys")) || ["Z","X","N","M"];
+            k.forEach((v,i) => document.getElementById("k"+i).value = v);
+        };
+       function toggleNews(show) {
+    const sidebar = document.getElementById("news-sidebar");
+    if (show) {
+        sidebar.classList.add("open");
+    } else {
+        sidebar.classList.remove("open");
     }
-</script>
+}
+
+    </script>
 </body>
 </html>
